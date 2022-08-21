@@ -30,7 +30,7 @@ double light_intensity (int RawADC0) {
 
 
 //Usuario uniandes sin @uniandes.edu.co
-#define HOSTNAME "ps.lizarazo"
+#define HOSTNAME "usuario"
 
 //Conexión a Mosquitto
 const char MQTT_HOST[] = "iotlab.virtual.uniandes.edu.co";
