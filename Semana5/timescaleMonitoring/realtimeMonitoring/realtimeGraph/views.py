@@ -40,6 +40,50 @@ from realtimeMonitoring import settings
 import dateutil.relativedelta
 from django.db.models import Avg, Max, Min, Sum
 
+class RetoTemperaturaView(TemplateView):
+    def get(self, request, *args, **kwargs):
+        ciudadParam = self.request.GET.get('ciudad', None) # ciudad
+        medidaParam = self.request.GET.get('medida', None) # avg, max, min
+        try:
+            start = datetime.fromtimestamp(
+                float(self.request.GET.get('from', None))/1000)
+        except:
+            start = None
+        try:
+            end = datetime.fromtimestamp(
+                float(self.request.GET.get('to', None))/1000)
+        except:
+            end = None
+        
+        if any([ciudadParam is None, medidaParam is None, start is None, end is None]):
+            return HttpResponseBadRequest('Bad Request')
+
+        if medidaParam != 'avg':
+            return HttpResponseBadRequest('Not supported operation')
+
+        # Get the stations which location is in the city specified
+        stations = Station.objects.filter(location__city__name__iexact=ciudadParam)
+
+        #return all stations
+        if ciudadParam == 'all':
+            stations = Station.objects.all()
+
+        if len(stations) == 0:
+            return HttpResponseNotFound('Not Found Stations')
+        
+        start_ts = int(start.timestamp() * 1000000)
+        end_ts = int(end.timestamp() * 1000000)
+        # Get the data from the stations
+        data = Data.objects.filter(station__in=stations, measurement__name__iexact='Temperatura', time__range=[start_ts, end_ts])
+        if len(data) == 0:
+            return HttpResponseNotFound('Not Found Data')
+        # Get the average of the data
+        avg = data.aggregate(Avg("avg_value"))["avg_value__avg"]
+        if avg is None:
+            return HttpResponseNotFound('Not calculated avg')
+
+        # Return the average
+        return JsonResponse({'avg': avg})
 
 class DashboardView(TemplateView):
     template_name = "index.html"
