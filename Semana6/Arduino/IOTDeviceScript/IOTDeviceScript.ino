@@ -42,9 +42,9 @@ PubSubClient client(net);
 
 // WiFi
 // Nombre de la red WiFi
-const char ssid[] = "NombreRed"; // TODO cambiar por el nombre de la red WiFi
+const char ssid[] = "NOVUS_CXNK00289342_2.4G"; // TODO cambiar por el nombre de la red WiFi
 // Contraseña de la red WiFi
-const char pass[] = "ClaveWifi"; // TODO cambiar por la contraseña de la red WiFi
+const char pass[] = "84f9498c3ee448f7"; // TODO cambiar por la contraseña de la red WiFi
 
 //Conexión a Mosquitto
 #define USER "user1" // TODO Reemplace UsuarioMQTT por un usuario que haya creado en la configuración del bróker de MQTT.
@@ -187,7 +187,7 @@ void displayHeader() {
   tinfo = localtime(&milli);
   String hour = String(asctime(tinfo)).substring(11, 19);
   
-  String title = "IOT " + hour;
+  String title = "IOT Sensors  " + hour;
   lcd.setCursor(0,0);
   lcd.print(title);
   //display.println(title);
@@ -198,11 +198,6 @@ void displayHeader() {
  */
 void displayMeasures() {
   //TODO
-  lcd.setCursor(0,1);
-  String tempStr =  String(temp, 0);
-  String humiStr =  String(humi, 0);
-  String medidas = "T:" + tempStr + ",H:" + humiStr;
-  lcd.print(medidas);
   //display.println("");
  // display.print("T: ");
  // display.print(temp);
@@ -224,23 +219,12 @@ void displayMessage(String message) {
   //display.setTextSize(2);
   
   if (message.equals("OK")) {
-    lcd.setCursor(14,1);
-    lcd.print(message);
-    // NO HACE NADA, NO hay suficiente espacio en pantalla
     //display.println("    " + message); 
   } else {
-    lcd.clear();
-    lcd.setCursor(0, 0);
-    lcd.print("ALERTA");
-    lcd.setCursor(0, 1);
-    lcd.print(message);    
     //display.setTextSize(2);
     //display.println("");
     //display.println("");
-    //display.println(message);
-    Serial.println("ALERTA " + message);
-    delay(2000);
-    lcd.clear();
+    //display.println(message); 
   }
 }
 
@@ -299,10 +283,6 @@ void receivedCallback(char* topic, byte* payload, unsigned int length) {
   }
   Serial.print(data);
   if (data.indexOf("ALERT") >= 0) {
-    alert = data;
-  }
-
-  if(data.indexOf("Humedad") >= 0) {
     alert = data;
   }
 }
@@ -466,8 +446,6 @@ void setup() {
   setTime();
 
   configureMQTT(); 
-
-  lcd.clear();
 }
 
 void loop() {
@@ -477,7 +455,13 @@ void loop() {
   String message = checkAlert();
 
   measure();
+  
+  lcd.clear();
+  lcd.setCursor(0,0);
+  
   displayHeader();
   displayMeasures();
   displayMessage(message);
+
+  lcd.display();
 }
